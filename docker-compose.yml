@@ -21,6 +21,8 @@ services:
       - app-network
     volumes:
       - ./source:/home/sites/main
+      - ./import/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./import/php/php.ini:/usr/local/etc/php/php.ini
 
   #HTTPS
   app-httpd:
