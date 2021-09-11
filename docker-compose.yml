@@ -1,16 +1,13 @@
 version: "3.9"
+
 #NETWORK
 networks:
-  app-network:
+  app_network:
     driver: bridge
-
-#VOL
-volumes:
-  dir_site:
 
 services:
   #PHP
-  app-php:
+  app_php:
     container_name: php-product
     build:
       dockerfile: Dockerfile
@@ -18,40 +15,81 @@ services:
     hostname: php
     restart: always
     networks:
-      - app-network
+      - app_network
+    working_dir: /var/www
     volumes:
-      - ./source:/home/sites/main
+      - ./source/:/var/www/
       # - ./import/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
       # - ./import/php/php.ini:/usr/local/etc/php/php.ini
+    links:
+      - "app_db"
+
+  # #HTTPS
+  # app_httpd:
+  #   container_name: ${PROJECT_NAME}_www
+  #   image: "httpd:alpine"
+  #   hostname: httpd
+  #   restart: always
+  #   networks:
+  #     - app_network
+  #   volumes:
+  #     - ./source:/home/sites/main
+  #     - ./import/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf
+  #   ports:
+  #     - "${NGINX_PORT}" # http://localhost:8000
+  #     - "443:443"
 
   #HTTPS
-  app-httpd:
+  app_httpd:
     container_name: ${PROJECT_NAME}_www
-    image: "httpd:latest"
+    build:
+      dockerfile: Dockerfile
+      context: ./import/nginx
     hostname: httpd
     restart: always
     networks:
-      - app-network
+      - app_network
+    working_dir: /var/www
     volumes:
-      - ./source:/home/sites/main
-      - ./import/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./import/nginx/:/var/www/
+      - ./source/public/:/var/www/public/
     ports:
-      - "${NGINX_PORT}" # http://localhost:9999
-      - "443:443"
+      - "${NGINX_PORT}" # http://localhost:8000
 
   #MYSQL
-  app-mysql:
+  app_db:
     container_name: ${PROJECT_NAME}_db
     image: "mariadb:10.5.12"
-    hostname: "mysql"
+    hostname: app_db
     restart: always
     networks:
-      - app-network
+      - app_network
     volumes:
       - ./import/mysql/db:/var/lib/mysql
       - ./import/mysql/my.cnf:/etc/mysql/my.cnf
+    expose:
+      - "3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DATABASE_NAME}
       MYSQL_USER: ${DATABASE_USER}
       MYSQL_PASSWORD: ${DATABASE_USER_PASSWORD}
+    command:
+      [
+        "--character-set-server=utf8mb4",
+        "--collation-server=utf8mb4_unicode_ci",
+        "--default-authentication-plugin=mysql_native_password",
+      ]
+
+  #PHPMYADMIN
+  app_phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ${PROJECT_NAME}_phpmyadmin
+    ports:
+      - ${PHPMYADMIN_PORT}
+    environment:
+      PMA_HOST: app_db
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+      UPLOAD_LIMIT: 64M
+    networks:
+      - app_network
