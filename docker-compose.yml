@@ -24,7 +24,7 @@ services:
     networks:
       - my-network
     volumes:
-      - dir_site:/home/sites
+      - ./source:/home/sites/main
 
   #HTTPS
   my-httpd:
@@ -35,7 +35,7 @@ services:
     networks:
       - my-network
     volumes:
-      - dir_site:/home/sites
+      - ./source:/home/sites/main
       - ./import/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf
     ports:
       - "9999:80" # http://localhost:9999
@@ -50,8 +50,8 @@ services:
     networks:
       - my-network
     volumes:
-      - .import/mysql/db:/var/lib/mysql
-      - .import/mysql/my.conf:/etc/mysql/my.conf
+      - ./import/mysql/db:/var/lib/mysql
+      - ./import/mysql/my.conf:/etc/mysql/my.conf
     environment:
       - MYSQL_ROOT_PASSWORD=123035
       - MYSQL_DATABASE=db_site
