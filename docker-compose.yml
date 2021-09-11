@@ -21,7 +21,7 @@ services:
       - app-network
     volumes:
       - ./source:/home/sites/main
-      - ./import/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      # - ./import/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
       # - ./import/php/php.ini:/usr/local/etc/php/php.ini
 
   #HTTPS
@@ -49,7 +49,7 @@ services:
       - app-network
     volumes:
       - ./import/mysql/db:/var/lib/mysql
-      - ./import/mysql/my.conf:/etc/mysql/my.conf
+      - ./import/mysql/my.cnf:/etc/mysql/my.cnf
     environment:
       MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DATABASE_NAME}
