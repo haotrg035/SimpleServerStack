@@ -1,0 +1,59 @@
+version: "3.9"
+#NETWORK
+networks:
+  my-network:
+    driver: bridge
+
+#VOL
+volumes:
+  dir_site:
+    # driver_opts:
+    #   type: volume
+    #   device: ./source
+    #   o: bind
+
+services:
+  #PHP
+  my-php:
+    container_name: php-product
+    build:
+      dockerfile: Dockerfile
+      context: ./import/php
+    hostname: php
+    restart: always
+    networks:
+      - my-network
+    volumes:
+      - dir_site:/home/sites
+
+  #HTTPS
+  my-httpd:
+    container_name: c-httpd
+    image: "httpd:latest"
+    hostname: httpd
+    restart: always
+    networks:
+      - my-network
+    volumes:
+      - dir_site:/home/sites
+      - ./import/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf
+    ports:
+      - "9999:80" # http://localhost:9999
+      - "443:443"
+
+  #MYSQL
+  my-mysql:
+    container_name: mysql-product
+    image: "mariadb:latest"
+    hostname: mysql
+    restart: always
+    networks:
+      - my-network
+    volumes:
+      - .import/mysql/db:/var/lib/mysql
+      - .import/mysql/my.conf:/etc/mysql/my.conf
+    environment:
+      - MYSQL_ROOT_PASSWORD=123035
+      - MYSQL_DATABASE=db_site
+      - MYSQL_USER=siteuser
+      - MYSQL_PASSWORD=sitepass
